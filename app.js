@@ -48,8 +48,12 @@ const $equation = document.getElementById('result-equation');
 const $reset = document.getElementById('reset-state');
 const $boardHi = document.getElementById('board-high');
 const $boardLo = document.getElementById('board-low');
+const $boardHiTitle = document.getElementById('board-high-title');
+const $boardLoTitle = document.getElementById('board-low-title');
+const $burdenScopeLabel = document.getElementById('burden-scope-label');
 const $mapLabel = document.getElementById('map-selected-label');
 const $mapModeLabel = document.getElementById('map-mode-label');
+const $mapCoverageNote = document.getElementById('map-coverage-note');
 const $mapMount = document.getElementById('cartogram');
 
 const STATE_PREDICTED = new Map(STATES.map(s => [s.abbr, predict('state', s.depression, s.financial_threat)]));
@@ -87,27 +91,36 @@ function populateCountySelect(abbr, preferredId) {
 }
 
 function renderBoards() {
-  const ranked = STATES.map(s => ({ ...s, predicted: STATE_PREDICTED.get(s.abbr) }))
+  const countyMode = currentMode === 'county';
+  const records = countyMode
+    ? COUNTIES.map(county => ({ ...county, predicted: county.distress_predicted }))
+    : STATES.map(state => ({ ...state, predicted: STATE_PREDICTED.get(state.abbr) }));
+  const ranked = records
     .sort((a, b) => b.predicted - a.predicted);
+  const scope = countyMode ? 'county' : 'state';
+  $burdenScopeLabel.textContent = `${countyMode ? 'County' : 'State'}-level ranking`;
+  $boardHiTitle.textContent = `Highest predicted ${scope} distress`;
+  $boardLoTitle.textContent = `Lowest predicted ${scope} distress`;
   $boardHi.classList.add('board--high');
   $boardLo.classList.add('board--low');
-  $boardHi.replaceChildren(...ranked.slice(0, 6).map((s, i) => makeBoardRow(s, i)));
-  $boardLo.replaceChildren(...ranked.slice(-6).reverse().map((s, i) => makeBoardRow(s, i)));
+  $boardHi.replaceChildren(...ranked.slice(0, 6).map((record, i) => makeBoardRow(record, i, countyMode)));
+  $boardLo.replaceChildren(...ranked.slice(-6).reverse().map((record, i) => makeBoardRow(record, i, countyMode)));
 }
 
-function makeBoardRow(state, index) {
+function makeBoardRow(record, index, countyMode) {
   const row = document.createElement('li');
   row.className = 'board__row';
-  row.dataset.abbr = state.abbr;
+  row.dataset.abbr = record.abbr;
+  if (countyMode) row.dataset.countyId = record.id;
   const rank = document.createElement('span');
   rank.className = 'board__rank';
   rank.textContent = (index + 1).toString().padStart(2, '0');
   const nameWrap = document.createElement('span');
   const name = document.createElement('span');
   name.className = 'board__name';
-  name.textContent = state.name;
+  name.textContent = countyMode ? countyLabel(record) : record.name;
   nameWrap.appendChild(name);
-  if (state.imputed?.length) {
+  if (record.imputed?.length) {
     const dot = document.createElement('span');
     dot.className = 'board__abbr';
     dot.style.cssText = 'margin-left:6px;color:#b8a86a';
@@ -117,16 +130,22 @@ function makeBoardRow(state, index) {
   }
   const abbr = document.createElement('span');
   abbr.className = 'board__abbr';
-  abbr.textContent = state.abbr;
+  abbr.textContent = record.abbr;
   const value = document.createElement('span');
   value.className = 'board__value';
-  value.textContent = `${state.predicted.toFixed(2)}%`;
+  value.textContent = `${record.predicted.toFixed(2)}%`;
   row.append(rank, nameWrap, abbr, value);
   row.addEventListener('click', () => {
-    if (currentMode !== 'state') setMode('state');
-    $select.value = state.abbr;
-    applyState(state.abbr);
-    highlightSelected(state.abbr);
+    $select.value = record.abbr;
+    if (countyMode) {
+      populateCountySelect(record.abbr, record.id);
+      $countySelect.value = record.id;
+      applyCounty(record.id);
+      highlightSelected(record.id);
+    } else {
+      applyState(record.abbr);
+      highlightSelected(record.abbr);
+    }
   });
   return row;
 }
@@ -210,6 +229,9 @@ function setMode(mode) {
   $modeNote.textContent = countyMode ? 'Secondary complete-case extension · 2,299 counties' : 'Original state-level poster model';
   $pickerStep.textContent = countyMode ? 'Step 01 · Select a county' : 'Step 01 · Select a state';
   $mapModeLabel.textContent = countyMode ? 'Click an available county to forecast it' : 'Click a state to forecast it';
+  $mapCoverageNote.textContent = countyMode
+    ? 'County detail is shown where all required county measures are complete.'
+    : 'All states use the original state-level estimates.';
   $helper.textContent = countyMode
     ? 'County values use the same CDC PLACES 2025 file and complete-case rules as the county notebook.'
     : 'Values prefill from CDC PLACES. Nudge the inputs below to explore counter-factual scenarios.';
@@ -222,6 +244,7 @@ function setMode(mode) {
   } else {
     applyState(abbr);
   }
+  renderBoards();
   if (redrawMap) redrawMap();
 }
 

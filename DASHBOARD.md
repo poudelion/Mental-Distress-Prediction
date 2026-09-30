@@ -1,7 +1,7 @@
 # Wellbeing — Mental Distress Prediction Dashboard
 
 An interactive companion to *Predicting Mental Distress Using Depression and
-Financial Stress Among Adults in the United States* (Lama, Owolabi, Chouchane —
+Financial Stress Among Adults in the United States* (Lama, Poudel, Owolabi, Chouchane —
 Morgan State University, Spring into Research Week 2026).
 
 The dashboard keeps the state-level regression from `Health.ipynb` as its
@@ -109,6 +109,6 @@ The 11 hold-out test points in `TEST_SET` come from the same cell's
 
 - **Data:** CDC PLACES — *Local Data for Better Health, County Data,
   2025 release.*
-- **Model & notebook:** Mingma Lama, Daniel Owolabi.
+- **Model & notebooks:** Mingma Lama, Aditya Poudel, Daniel Owolabi.
 - **Mentorship:** Prof. Radhouane Chouchane, Dept. of Computer Science,
   Morgan State University.

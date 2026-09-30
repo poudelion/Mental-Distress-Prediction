@@ -56,7 +56,7 @@
       </p>
 
       <ul class="hero__byline">
-        <li><span class="kicker">Authors</span>Mingma Lama &middot; Daniel Owolabi</li>
+        <li><span class="kicker">Authors</span>Mingma Lama &middot; Aditya Poudel &middot; Daniel Owolabi</li>
         <li><span class="kicker">Mentor</span>Prof. Radhouane Chouchane</li>
         <li><span class="kicker">Dept.</span>Computer Science, Morgan State University</li>
       </ul>
@@ -206,6 +206,17 @@
       <span class="kicker" id="map-mode-label">Click a state to forecast it</span>
     </div>
 
+    <div class="map-view-switcher" aria-label="Choose map detail level">
+      <div>
+        <span class="kicker">Map view</span>
+        <span class="muted small" id="map-coverage-note">All states use the original state-level estimates.</span>
+      </div>
+      <div class="segmented" role="group" aria-label="State or county map">
+        <button type="button" class="segmented__button is-active" data-mode="state" aria-pressed="true">State view</button>
+        <button type="button" class="segmented__button" data-mode="county" aria-pressed="false">County view</button>
+      </div>
+    </div>
+
     <div class="map-card card">
       <div id="cartogram" class="cartogram" role="img"
            aria-label="Choropleth of the United States. Darker wine fills indicate higher predicted mental distress.">
@@ -235,15 +246,16 @@
       <span class="section__num">3</span>
       <h2 class="section__title">Where the <em>burden falls</em>.</h2>
       <span class="section__rule"></span>
+      <span class="kicker" id="burden-scope-label">State-level ranking</span>
     </div>
 
     <div class="boards">
       <div class="board card card--paper">
-        <div class="kicker kicker--wine">Highest predicted distress</div>
+        <div class="kicker kicker--wine" id="board-high-title">Highest predicted state distress</div>
         <ol id="board-high" class="board__list"></ol>
       </div>
       <div class="board card card--paper">
-        <div class="kicker kicker--sage">Lowest predicted distress</div>
+        <div class="kicker kicker--sage" id="board-low-title">Lowest predicted state distress</div>
         <ol id="board-low" class="board__list"></ol>
       </div>
     </div>
@@ -361,7 +373,7 @@
 
   <!-- ============ FOOTER ============ -->
   <footer class="footer">
-    <span class="kicker">© 2026 &middot; Lama · Owolabi · Chouchane &middot; Morgan State University</span>
+    <span class="kicker">© 2026 &middot; Lama · Poudel · Owolabi · Chouchane &middot; Morgan State University</span>
     <span class="footer__sources">
       Data
       <a href="https://chronicdata.cdc.gov/500-Cities-Places/PLACES-Local-Data-for-Better-Health-County-Data-20/swc5-untb"
@@ -377,7 +389,7 @@
 
 <script src="data.js"></script>
 <script src="county-data.js"></script>
-<script src="app.js"></script>
+<script src="app.js?v=county-burden-rankings"></script>
 
 </body>
 </html>
