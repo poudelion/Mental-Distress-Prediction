@@ -228,9 +228,9 @@ function setMode(mode) {
   $scopeLabel.textContent = countyMode ? 'Choose a state and county' : 'Pick a state to begin';
   $modeNote.textContent = countyMode ? 'Secondary complete-case extension · 2,299 counties' : 'Original state-level poster model';
   $pickerStep.textContent = countyMode ? 'Step 01 · Select a county' : 'Step 01 · Select a state';
-  $mapModeLabel.textContent = countyMode ? 'Click an available county to forecast it' : 'Click a state to forecast it';
+  $mapModeLabel.textContent = countyMode ? 'Click a county or state-level fallback' : 'Click a state to forecast it';
   $mapCoverageNote.textContent = countyMode
-    ? 'County detail is shown where all required county measures are complete.'
+    ? 'County detail where available; otherwise the original whole-state estimate.'
     : 'All states use the original state-level estimates.';
   $helper.textContent = countyMode
     ? 'County values use the same CDC PLACES 2025 file and complete-case rules as the county notebook.'
@@ -333,18 +333,50 @@ async function mountChoropleth() {
           highlightSelected(abbr);
         });
     } else {
-      svg.selectAll('path.county-path').data(counties).join('path')
+      const fallbackStates = states.filter(feature => {
+        const abbr = FIPS_TO_ABBR[String(feature.id).padStart(2, '0')];
+        return STATES_BY_ABBR[abbr] && !COUNTY_GROUPS.has(abbr);
+      });
+      const availableCounties = counties.filter(feature =>
+        Boolean(COUNTIES_BY_ID[String(feature.id).padStart(5, '0')])
+      );
+
+      svg.selectAll('path.state-fallback').data(fallbackStates).join('path')
         .attr('d', path)
-        .attr('class', f => COUNTIES_BY_ID[String(f.id).padStart(5, '0')] ? 'county-path' : 'county-path is-unavailable')
-        .attr('data-county-id', f => String(f.id).padStart(5, '0'))
-        .attr('fill', f => {
-          const county = COUNTIES_BY_ID[String(f.id).padStart(5, '0')];
-          return county ? distressToColor(county.distress_predicted) : '#d9cdb3';
+        .attr('class', 'state-fallback')
+        .attr('data-abbr', feature => FIPS_TO_ABBR[String(feature.id).padStart(2, '0')] || '')
+        .attr('fill', feature => {
+          const abbr = FIPS_TO_ABBR[String(feature.id).padStart(2, '0')];
+          return distressToColor(STATE_PREDICTED.get(abbr) ?? 16);
         })
+        .on('pointerenter pointermove', (event, feature) => {
+          const abbr = FIPS_TO_ABBR[String(feature.id).padStart(2, '0')];
+          const state = STATES_BY_ABBR[abbr];
+          if (state) showTooltip(
+            tooltip,
+            event,
+            `${state.name} · state-level fallback`,
+            `Predicted ${STATE_PREDICTED.get(abbr).toFixed(2)}% · county hardship data unavailable`,
+          );
+        })
+        .on('pointerleave', () => { tooltip.hidden = true; })
+        .on('click', (event, feature) => {
+          const abbr = FIPS_TO_ABBR[String(feature.id).padStart(2, '0')];
+          if (!STATES_BY_ABBR[abbr]) return;
+          setMode('state');
+          $select.value = abbr;
+          applyState(abbr);
+          highlightSelected(abbr);
+        });
+
+      svg.selectAll('path.county-path').data(availableCounties).join('path')
+        .attr('d', path)
+        .attr('class', 'county-path')
+        .attr('data-county-id', f => String(f.id).padStart(5, '0'))
+        .attr('fill', f => distressToColor(COUNTIES_BY_ID[String(f.id).padStart(5, '0')].distress_predicted))
         .on('pointerenter pointermove', (event, f) => {
           const county = COUNTIES_BY_ID[String(f.id).padStart(5, '0')];
-          if (county) showTooltip(tooltip, event, `${countyLabel(county)}, ${county.abbr}`, `Predicted ${county.distress_predicted.toFixed(2)}% · CDC ${county.distress_actual.toFixed(2)}%`);
-          else showTooltip(tooltip, event, 'County unavailable', 'No complete financial-hardship record');
+          showTooltip(tooltip, event, `${countyLabel(county)}, ${county.abbr}`, `Predicted ${county.distress_predicted.toFixed(2)}% · CDC ${county.distress_actual.toFixed(2)}%`);
         })
         .on('pointerleave', () => { tooltip.hidden = true; })
         .on('click', (event, f) => {

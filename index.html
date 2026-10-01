@@ -362,12 +362,13 @@
         <span class="kicker kicker--wine">Single hold-out</span>
         No cross-validation; the generalization estimate is noisy.
       </li>
-      <li>
-        <span class="kicker kicker--wine">County coverage</span>
-        The county extension is a complete-case analysis of 2,299 counties in
-        39 states and DC; jurisdictions without all four hardship measures are
-        shown as unavailable rather than imputed.
-      </li>
+            <li>
+              <span class="kicker kicker--wine">County coverage</span>
+              The county extension is a complete-case analysis of 2,299 counties in
+              39 states and DC. In County view, jurisdictions without all four
+              hardship measures use the original whole-state estimate; no missing
+              county values are imputed.
+            </li>
     </ol>
   </section>
 
@@ -389,7 +390,7 @@
 
 <script src="data.js"></script>
 <script src="county-data.js"></script>
-<script src="app.js?v=county-burden-rankings"></script>
+<script src="app.js?v=county-state-fallbacks"></script>
 
 </body>
 </html>

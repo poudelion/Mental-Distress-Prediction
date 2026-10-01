@@ -605,7 +605,18 @@ a { color: inherit; text-underline-offset: 3px; }
   stroke: var(--navy);
   stroke-width: 1.4;
 }
-.county-path.is-unavailable { cursor: default; }
+.state-fallback {
+  stroke: var(--paper);
+  stroke-width: 1.15;
+  cursor: pointer;
+  transition: filter 140ms ease, stroke 140ms ease, stroke-width 140ms ease;
+  filter: saturate(0.88);
+}
+.state-fallback:hover {
+  stroke: var(--ink);
+  stroke-width: 1.7;
+  filter: brightness(1.05);
+}
 .map-state-border {
   fill: none;
   stroke: var(--paper);
